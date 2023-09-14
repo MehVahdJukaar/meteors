@@ -4,11 +4,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Snowball;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SnowballItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -66,18 +68,21 @@ public class VolcanoBlock extends BaseEntityBlock{
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-
-        if(player.isSecondaryUseActive()) {
-            for (int i = 0; i < 30; i++) {
-                MeteorEntity me = new MeteorEntity(pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, level);
-                me.shootFromRotation(player, (float) (-90f + 20 * level.random.nextGaussian()), 180 * level.random.nextFloat(), 0, 1+(float)level.random.nextFloat()*3, 1.5f);
-                level.addFreshEntity(me);
+        if (player.getItemInHand(hand).is(Items.STICK) && level.getBlockEntity(pos) instanceof VolcanoBlockTile t) {
+            t.addTime(40);
+        } else {
+            if (player.isSecondaryUseActive()) {
+                for (int i = 0; i < 30; i++) {
+                    MeteorEntity me = new MeteorEntity(pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, level);
+                    me.shootFromRotation(player, (float) (-90f + 20 * level.random.nextGaussian()), 180 * level.random.nextFloat(), 0, 1 + (float) level.random.nextFloat() * 3, 1.5f);
+                    level.addFreshEntity(me);
+                }
             }
+            MeteorEntity me = new MeteorEntity(pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, level);
+            me.shootFromRotation(player, (float) (-90f + 20 * level.random.nextGaussian()), 180 * level.random.nextFloat(), 0, 1, 1.5f);
+            me.setNoDamages();
+            level.addFreshEntity(me);
         }
-        MeteorEntity me = new MeteorEntity( pos.getX()+0.5, pos.getY()+1.5, pos.getZ()+0.5, level);
-        me.shootFromRotation(player, (float)(-90f + 20*level.random.nextGaussian()), 180*level.random.nextFloat() ,  0, 1, 1.5f);
-        me.setNoDamages();
-        level.addFreshEntity(me);
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 }

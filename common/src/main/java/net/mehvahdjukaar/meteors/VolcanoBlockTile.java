@@ -3,9 +3,9 @@ package net.mehvahdjukaar.meteors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,7 +17,7 @@ import java.util.Set;
 public class VolcanoBlockTile extends BlockEntity {
 
     private int tickCount;
-    private int lavaLevel;
+    private int lavaLevel = VolcanoSettings.MIN_Y.get();
 
     public VolcanoBlockTile(BlockPos blockPos, BlockState blockState) {
         super(Meteors.VOLCANO_TILE.get(), blockPos, blockState);
@@ -39,33 +39,39 @@ public class VolcanoBlockTile extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, VolcanoBlockTile e) {
-        e.tick(level, pos);
+        if (!level.isClientSide) e.tick(level, pos);
     }
 
     public void tick(Level level, BlockPos pos) {
         tickCount++;
 
-        double chance = computeChance(tickCount);
+        double chance = computeChance();
 
-        if (level.random.nextFloat() * 100 < chance) {
+        if (level.random.nextFloat() < chance) {
             shootFromRotation(pos, (float) (-90f + 20 * level.random.nextGaussian()),
                     180 * level.random.nextFloat(), 0, 1, 1.5f);
 
         }
 
 
+
+
         //lava stuff
-        if(tickCount%20==0 ) {
+        if (tickCount % 20 == 0) {
             int maxTime = VolcanoSettings.TIME_TO_FINAL_ERUPTION.get();
             double a = VolcanoSettings.POWER_INCREASE_AMPL.get();
             int r = VolcanoSettings.POWER_INCREASE_EXPONENT.get();
             double mult = 1f / (a * intPower(maxTime, r));
-            float time = (tickCount / 20f)%maxTime;
+            float time = (tickCount / 20f) % maxTime;
 
             double normalized = (a * intPower(time, r)) * mult;
 
-            int ll = (int) Mth.map(normalized, 0, 1, VolcanoSettings.MIN_Y.get(), VolcanoSettings.MAX_Y.get());
+            int ll = (int) Mth.map(normalized, 0, 1, VolcanoSettings.MIN_Y.get(),
+                    VolcanoSettings.MAX_Y.get());
 
+            if (ll > VolcanoSettings.MAX_Y.get()) {
+                int aa = 1;
+            }
             if (ll != lavaLevel) {
                 lavaLevel = ll;
                 fillWithLavaRecursive(Direction.NORTH, new HashSet<>(), level, new BlockPos(pos.getX(), lavaLevel, pos.getZ()), 200);
@@ -75,6 +81,16 @@ public class VolcanoBlockTile extends BlockEntity {
             //x = T -> x = 1;
             // maT^k = 1
             // m = 1/
+
+            if (tickCount % 40 == 0) {
+                for (var v : level.getServer().getPlayerList().getPlayers()) {
+                    if (v.isCreative()) {
+                        v.displayClientMessage(Component.literal(String.format("%.3f", this.computeChance())+
+                                        String.format( " - t: %.2f", +100*time/maxTime)  ),
+                                false);
+                    }
+                }
+            }
         }
     }
 
@@ -90,17 +106,18 @@ public class VolcanoBlockTile extends BlockEntity {
         level.addFreshEntity(me);
     }
 
-    public double computeChance(int ticks) {
+    public double computeChance() {
 //\left(a\cdot x\right)\operatorname{abs}\left(\sin\left(xf\right)\right)^{\frac{s}{f}}+b\cdot a\cdot x
 
         //time in seconds
-        float time = ticks / 20f;
+        float time = tickCount / 20f;
 
         int maxTime = VolcanoSettings.TIME_TO_FINAL_ERUPTION.get();
 
         if (time >= maxTime) {
             this.level.explode(null, this.getBlockPos().getX(), this.getBlockPos().getY(),
                     this.getBlockPos().getZ(), 5, Level.ExplosionInteraction.TNT);
+            this.level.removeBlock(worldPosition, false);
             tickCount = 0;
         }
         time = time % maxTime;
@@ -109,7 +126,7 @@ public class VolcanoBlockTile extends BlockEntity {
 
         int increaseRank = VolcanoSettings.POWER_INCREASE_EXPONENT.get();
 
-        int steepness = VolcanoSettings.PEAK_SHARPNESS.get();
+        double steepness = VolcanoSettings.PEAK_SHARPNESS.get();
 
         double b = VolcanoSettings.QUIET_TIME_BASE_INCREASE.get();
         double a = VolcanoSettings.POWER_INCREASE_AMPL.get();
@@ -149,12 +166,16 @@ public class VolcanoBlockTile extends BlockEntity {
                 if (!visited.contains(p)) {
                     visited.add(p);
                     if (level.getBlockState(p).isAir()) {
-                        level.setBlock(p, Blocks.LAVA.defaultBlockState(), Block.UPDATE_CLIENTS);
-                        recursionLeft-=1;
+                        level.setBlockAndUpdate(p, Blocks.LAVA.defaultBlockState());
+                        recursionLeft -= 1;
                         fillWithLavaRecursive(d, visited, level, p, recursionLeft);
                     }
                 }
             }
         }
+    }
+
+    public void addTime(int i) {
+        tickCount+=i;
     }
 }

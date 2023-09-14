@@ -14,7 +14,7 @@ public class VolcanoSettings {
 
     public static final Supplier<Double> POWER_INCREASE_AMPL;
     public static final Supplier<Integer> POWER_INCREASE_EXPONENT;
-    public static final Supplier<Integer> PEAK_SHARPNESS;
+    public static final Supplier<Double> PEAK_SHARPNESS;
     public static final Supplier<Double> QUIET_TIME_BASE_INCREASE;
 
     public static final Supplier<Integer> MIN_Y;
@@ -30,15 +30,15 @@ public class VolcanoSettings {
                 .define("time_to_final_eruption", 1200, 0, 100000000);
 
         POWER_INCREASE_AMPL = builder.comment("(a) Volcano activity follows a sine multiplied by a polinomnia. This determines the scalar multiplier of that polynomial")
-                .define("power_amplitude", 0.000001d, 0, 1000000);
+                .define("power_amplitude", 0.0000000005, 0, 1000000);
         POWER_INCREASE_EXPONENT = builder.comment("(k) Volcano activity follows a sine multiplied by a polynomial. This determines the rank of the polynomial (1 is a line, increase to have steeper increase as time goes on)")
-                .define("power_exponent", 2, 0, 1000000);
+                .define("power_exponent", 3, 0, 1000000);
 
         PEAK_SHARPNESS = builder.comment("(s) This determines how sharp (how long) the eruption activities will be. Essentially this is just the exponent of the sine wave. at 1 you get balanced quite time and eruption time")
-                .define("peak_sharpness", 4, 0, 100000);
+                    .define("peak_sharpness", 0.5d, 0, 100000);
 
         QUIET_TIME_BASE_INCREASE = builder.comment("(b) This is the angular coefficient of a line that will be added to the final equation. Essentially makes it so as time goes on even during quite times some activity can be noticed")
-                .define("base_steepness_increase", 0.00005, 0, 100);
+                .define("base_steepness_increase", 0.000002, 0, 100);
 
 
         MIN_Y = builder.comment("Minimum y lava level")
