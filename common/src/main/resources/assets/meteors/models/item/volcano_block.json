@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "meteors:item/volcano",
+    "particles": "meteors:item/volcano"
+  }
+}

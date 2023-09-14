@@ -1,0 +1,19 @@
+{
+  "textures": [
+    "meteors:fire_explosion_a0",
+    "meteors:fire_explosion_a1",
+    "meteors:fire_explosion_a2",
+    "meteors:fire_explosion_a3",
+	"meteors:fire_explosion_a4",
+    "meteors:fire_explosion_b0",
+    "meteors:fire_explosion_b1",
+    "meteors:fire_explosion_b2",
+    "meteors:fire_explosion_b3",
+    "meteors:fire_explosion_b4",
+    "meteors:fire_explosion_c0",
+    "meteors:fire_explosion_c1",
+    "meteors:fire_explosion_c2",
+    "meteors:fire_explosion_c3",
+    "meteors:fire_explosion_c4"
+  ]
+}
