@@ -53,7 +53,6 @@ public class MeteorEntity extends ImprovedProjectileEntity {
 
     @Override
     public void tick() {
-        // this.setNoGravity(true);
         //   float d = this.tickCount/40f;
         // this.setDeltaMovement(Mth.sin(d)/10f, 0, Mth.cos(d)/10f);
         super.tick();

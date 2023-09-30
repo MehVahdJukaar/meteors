@@ -1,6 +1,7 @@
 package net.mehvahdjukaar.meteors.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.mehvahdjukaar.meteors.MeteorEntity;
 import net.mehvahdjukaar.meteors.Meteors;
@@ -14,6 +15,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.CreeperRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -21,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class MeteorRenderer extends EntityRenderer<MeteorEntity> {
     private static final ResourceLocation TEXTURE = Meteors.res("textures/entity/meteor.png");
+    private static final ResourceLocation OVERLAY_TEXTURE = Meteors.res("textures/entity/overlay.png");
     private final ModelPart meteor;
     private final ModelPart meteorEmissive;
     private final ModelPart overlay;
@@ -45,13 +48,22 @@ public class MeteorRenderer extends EntityRenderer<MeteorEntity> {
         var s = LightTexture.sky(packedLight);
         var b = Math.max(7,LightTexture.block(packedLight));
 
-        meteor.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity))),
+        VertexConsumer buffer1 = buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
+        meteor.render(poseStack, buffer1,
                 LightTexture.pack(b,s), OverlayTexture.NO_OVERLAY);
-        meteorEmissive.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity))),
+        meteorEmissive.render(poseStack, buffer1,
                 LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-        overlay.render(poseStack, buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity))),
-                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+
+        float f = (float)entity.tickCount + partialTick;
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.energySwirl(OVERLAY_TEXTURE,
+                this.xOffset(f) % 1.0F, f * 0.01F % 1.0F));
+
+        overlay.render(poseStack, vertexConsumer, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
+    }
+
+    private float xOffset(float tickCount) {
+        return tickCount * 0.01F;
     }
 
     @Override
